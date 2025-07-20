@@ -1,50 +1,53 @@
-parse_pgn <- function() {
-    # Create a connection to read line by line
-    con <- file("huge_file.pgn", "r")
+library(magrittr)
+library(stringr)
+library(jsonlite)
+
+source("R/pgn_to_fen.R")
+
+con <- file("D:/lichess_db_standard_rated_2025-06.pgn", "r")
+
+is_tablebase <- function(line) {
+    piece_count <- line %>%
+        str_count("p|r|n|b|q|k|P|R|N|B|Q|K")
     
-    read_one_game <- function(con) {
-        game_lines <- c()
-        
-        while(TRUE) {
-            line <- readLines(con, n = 1)
+    piece_count <= 8
+}
+
+is_pgn <- function(line) substr(line, 1, 2) == "1."
+
+counter <- 0
+
+batch_size <- 1
+
+while (length(line <- readLines(con, n = batch_size)) > 0) {
+    
+    counter <- counter + 1
+    
+    message(counter * batch_size)
+    
+    # keep only the PGN itself
+    
+    line <- line[is_pgn(line)]
+    
+    # for each game, get sequence of FENs and keep if they're tablebase positions
+    
+    purrr::imap(
+        line,
+        function(pgn, i) {
             
-            # Check if we've reached end of file
-            if(length(line) == 0) {
-                return(NULL)  # End of file
-            }
+            result <- stringr::str_sub(pgn, -3)
             
-            # Skip empty lines at start
-            if(length(game_lines) == 0 && line == "") {
-                next
-            }
+            fens <- pgn_to_fen(pgn)
             
-            # Add line to current game
-            game_lines <- c(game_lines, line)
+            fens <- fens[is_tablebase(fens)]
             
-            # Check if we've reached end of game (empty line after moves)
-            if(line == "" && length(game_lines) > 1) {
-                # Remove the final empty line and return the game
-                return(game_lines[-length(game_lines)])
-            }
+            games <- tibble::tibble(
+                "id" = i,
+                "fens" = fens,
+                "result" = result
+            )
+            
+            readr::write_csv(games, "data/tablebase_positions.csv", append = TRUE)
         }
-    }
-    
-    # Usage example:
-    game_count <- 0
-    while(TRUE) {
-        game <- read_one_game(con)
-        if(is.null(game)) break  # End of file
-        
-        game_count <- game_count + 1
-        
-        # Process the game here
-        pgn_text <- paste(game, collapse = " ")
-        # ... your processing logic ...
-        
-        if(game_count %% 1000 == 0) {
-            cat("Processed", game_count, "games\n")
-        }
-    }
-    
-    close(con)
+    )
 }
