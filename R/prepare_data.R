@@ -28,8 +28,7 @@ dat <- dat %>%
 
 dat <- dat %>%
     mutate(avg_elo = (white_elo + black_elo)/2) %>%
-    mutate(avg_elo = 100 * as.integer(avg_elo/100) + 50
-           )
+    mutate(avg_elo = 100 * as.integer(avg_elo/100) + 50)
 
 # collapse time controls into rapid, blitz, and bullet
 

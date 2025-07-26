@@ -44,5 +44,5 @@ is_tablebase <- function(line) {
     piece_count <- line %>%
         str_count("p|r|n|b|q|k|P|R|N|B|Q|K")
     
-    piece_count <= 7 & piece_count > 0
+    piece_count <= 5 & piece_count > 0
 }

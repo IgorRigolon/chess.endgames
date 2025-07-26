@@ -8,17 +8,18 @@ moves_to_fen <- function(moves) {
     # remove empty moves
     moves <- moves[moves != ""]
     
-    # create rchess game to follow along
-    game <- Chess$new()
+    board <- chess$Board()
     
     # get vector with FENs
     
     purrr::map_chr(
         moves,
         function(move) {
-            game$move(move)
-            
-            game$fen()
+            # convert
+            move <- board$parse_san(move)
+            # make move
+            board$push(move)
+            board$fen()
         }
     )
 }
