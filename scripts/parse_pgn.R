@@ -30,7 +30,7 @@ past_endgames <- 0
 
 chunk <- 0
 
-skip_to_chunk <- 119
+skip_to_chunk <- 862
 
 while(length(dat <- readLines(con, n = batch_size)) > 0) {
     
@@ -141,11 +141,43 @@ while(length(dat <- readLines(con, n = batch_size)) > 0) {
     
     past_endgames <- past_endgames + nrow(dat)
     
-    # saving to parquet
-    
-    dat %>%
-        group_by(time_control, avg_elo) %>%
-        arrow::write_dataset("data")
+    # saving each batch to a .parquet
+
+    write_parquet(
+        dat,
+        paste0("data-raw/", "batch_", chunk, ".parquet")
+    )
     
     message(paste0("Chunk ", chunk, ": ", past_rows, " games - ", past_endgames, " endgames "))
 }
+
+# opening parquet chunks
+
+dat <- open_dataset("data-raw")
+
+# counting material
+
+dat <- dat %>%
+    mutate(
+        white_queen = str_count(fens, "Q"),
+        black_queen = str_count(fens, "q"),
+        white_rook = str_count(fens, "R"),
+        black_rook = str_count(fens, "r"),
+        white_knight = str_count(fens, "N"),
+        black_knight = str_count(fens, "n"),
+        white_bishop = str_count(fens, "B"),
+        black_bishop = str_count(fens, "b"),
+        white_pawn = str_count(fens, "P"),
+        black_pawn = str_count(fens, "p"),
+        material_count = white_queen + black_queen +
+            white_rook + black_rook + white_knight +
+            black_knight + white_bishop + black_bishop +
+            white_pawn + black_pawn
+    ) %>%
+    filter(material_count > 0)
+
+# splitting into parquet chunks
+
+dat %>%
+    group_by(time_control, material_count) %>%
+    arrow::write_dataset("data")
