@@ -14,21 +14,16 @@ ui <- fluidPage(
   
   tags$head(
       tags$style(HTML("
-      .piece-symbol { font-size: 20px; margin-right: 10px; }
-      .total-count { font-weight: bold; margin-top: 10px; }
-      .error { color: red; }
-      .success { color: green; }
-      
     .white-pieces .control-label {
       color: white;
       text-shadow: 1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black;
-      font-weight: normal;
+      font-weight: bold;
     }
     
     .black-pieces .control-label {
       color: #333;
-      font-weight: normal;
-      text-shadow: 1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black;
+      font-weight: bold;
+      text-shadow: 1px 1px 1px #ccc, -1px -1px 1px #ccc, 1px -1px 1px #ccc, -1px 1px 1px #ccc;
     }
     "))
   ),
@@ -51,8 +46,8 @@ ui <- fluidPage(
         "rating",
         label = "Rating range",
         min = 400,
-        max = 3300,
-        value = c(400, 3300),
+        max = 3400,
+        value = c(400, 3400),
         step = 100
       ),
       
@@ -96,7 +91,17 @@ ui <- fluidPage(
                      numericInput(
                          "black_pawn", "♙ Pawn", value = 0, min = 0, max = 3, width = "100%"
                      )
-                 )
+                 ),
+          ),
+            div(
+              style = "text-align: right; margin-right: 15px;",
+              actionBttn(
+                  inputId = "update_filter",
+                  label = "Search material", 
+                  icon = icon("search"),
+                  style = "bordered",
+                  color = "primary"
+              )
           )
       ),
       
@@ -121,10 +126,19 @@ ui <- fluidPage(
 server <- function(input, output) {
   # keep only the time control and rating ranges chosen
     
-  filtered_dat <- reactive({
+  filtered_dat <- eventReactive(input$update_filter, {
     dat <- dat %>%
-      filter(time_control %in% input$time_control) %>%
-      filter(avg_elo >= input$rating[1], avg_elo <= input$rating[2])
+      filter(time_control %in% input$time_control)
+    
+    if (input$rating[1] > 400) {
+        dat <- dat %>% 
+            filter(avg_elo >= input$rating[1])
+    }
+    
+    if (input$rating[2] < 3400) {
+        dat <- dat %>% 
+            filter(avg_elo <= input$rating[2])
+    }
     
     # store total games and observations
     
@@ -325,7 +339,7 @@ server <- function(input, output) {
         target = target_indices,
         value = df_p$num_positions,
         color = link_colors,
-        label = paste0(df_p$source, df_p$target, df_p$num_positions)
+        label = paste0(df_p$num_games)
       )
     )
 

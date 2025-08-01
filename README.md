@@ -1,9 +1,9 @@
 # chess.endgames
 An interactive graph to see how tablebase positions play out in practice
 
-Click on the image below to open the data visualization. You can filter games by time control, rating range, and by either material count or a specific FEN. Tablebase evaluations and results are always shown from white's perspective. _Note: It runs locally on your browser, so it may slow down your computer._
+***Not deployed yet***. Click on the image below to open the data visualization. You can filter games by time control, rating range, and by either material count or a specific FEN. Tablebase evaluations and results are always shown from white's perspective. _Note: It runs locally on your browser, so it may slow down your computer._
 
-[Click here to see]
+![Click here to see](examples/main.png)
 
 Even though chess positions with 7 pieces or fewer are solved by computers, they're not always simple for humans to play correctly. I analyze ~91 million games played on [lichess](lichess.org) to answer the question:
 
@@ -11,15 +11,39 @@ Even though chess positions with 7 pieces or fewer are solved by computers, they
 
 ## General statistics
 
-Out of the 91,...,... games, [x] of them (y%) reached a tablebase position. That amounts to [x] tablebase FENs, out of which [y] are unique.
+***Not done running for all of them***. Out of around 70 million games analyzed, 3.7 million of them reached a tablebase position (3-4-5 piece tablebase). That amounts to 57.8 million tablebase FENs, out of which 51.4 million are unique.
 
-## Examples
+To provide a couple of examples of what you can look at,
+
+### Knight and Bishop checkmate
+
+Can you mate with just Bishop and Knight? 75% of players couldn't do it in practice.
+
+![](examples/bishop_knight.png)
+
+If you're rated 2500+, you're more likely to manage it.
+
+![](examples/bishop_knight_2500+.png)
+
+## Data
+
+The data I used comes from the [lichess database](https://database.lichess.org/) and from [Syzygy tablebases](https://syzygy-tables.info/#download). If you just want to look at the processed data, it's all in the `/data/` folder. If you clone the repository, you can open it in R with
+
+```
+library(arrow)
+
+dat <- open_dataset(".../chess.endgames/data/")
+```
+
+or with analogous code on Python or other languages. Just beware that the data is probably too big to load into memory all at once, which is why [Arrow](https://arrow.apache.org/) comes in handy. You'll probably want to query a subset of the data or summary statistics before running `collect()` on it to actually open it.
 
 ## Workflow
 
-I manually downloaded the games played in June 2025 from the [lichess database](https://database.lichess.org/) and did three things with them: (i) I parsed the PGNs into data frames, (ii) I generated all the FENs reached in the games and checked which are tablebase positions, and (iii) I probed a locally-downloaded 3-4-5 piece [Syzygy tablebase](https://syzygy-tables.info/#download) to get the tablebase evaluations of positions. Even though I did everything in R, these last two steps relied heavily on the [`python-chess` library](https://pypi.org/project/chess/).
+I manually downloaded the games played in June 2025 from the [lichess database](https://database.lichess.org/) and did three things with them: (i) I parsed the PGNs into data frames, (ii) I generated all the FENs reached in the games and checked which are tablebase positions, and (iii) I probed a locally-downloaded 3-4-5 piece [Syzygy tablebase](https://syzygy-tables.info/#download) to get the tablebase evaluations of positions. Even though I did everything in R, these last two steps relied heavily on the [`python-chess` library](https://pypi.org/project/chess/). The whole database took around a week to fully process on my weak computer.
 
-The `scripts/process_database.R` script receives a big lichess database file and spits out the tablebase positions found within them, along with the ratings of players and the actual result of the games. The other scripts are auxiliary ones called in the beginning of `process_database.R`. The output of this script is stored in `/data-raw/`, where each chunk of games is stored in a separate `.parquet` file. Once all chunks are done processing, they're written into a single Arrow dataset, split by the time control and piece count.
+The `process_database.R` script receives a big lichess database file and spits out the tablebase positions found within them, along with the ratings of players and the actual result of the games. Other scripts in the `/scripts/` folder are auxiliary. The output of this script is stored in `/data-raw/`, where each chunk of games is stored in a separate `.parquet` file. Once all chunks are done processing, they're written into a single Arrow dataset, split by the time control and piece count.
+
+For the auxiliary scripts: `read_pgn.R` parses big chunks of PGNs into data frames all at once, and has a little helper function to find tablebase positions; `pgn_to_fen.R` uses `python-chess` to turn each PGN into a list of all FENs reached in the game. It is by far the biggest bottleneck, as it's relatively slow and I couldn't find a way to vectorize it: one game runs at a time. I tried to parellelize it, but it let to some bugs. `get_tablebase.R` also uses `python-chess` to take each FEN and check what a locally downloaded tablebase has to say about it.
 
 ## Limitations
 
