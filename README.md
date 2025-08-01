@@ -9,21 +9,21 @@ Even though chess positions with 7 pieces or fewer are solved by computers, they
 
 > How often do players mess up objectively winning or drawn endgames?
 
-## General statistics
-
 ***Not done running for all of them***. Out of around 70 million games analyzed, 3.7 million of them reached a tablebase position (3-4-5 piece tablebase). That amounts to 57.8 million tablebase FENs, out of which 51.4 million are unique.
 
-To provide a couple of examples of what you can look at,
+Besides filtering by time control and rating, you can filter by material or search a specific position by its FEN.
 
-### Knight and Bishop checkmate
-
-Can you mate with just Bishop and Knight? 75% of players couldn't do it in practice.
+For example, if I search for positions where white has a Bishop + Knight and black only has a King,
 
 ![](examples/bishop_knight.png)
 
 If you're rated 2500+, you're more likely to manage it.
 
 ![](examples/bishop_knight_2500+.png)
+
+To search a specific position, you can set it up on the [Lichess board editor](https://lichess.org/editor/) and paste its FEN. Below I've searched for a [Lucena position](https://lichess.org/editor/1K1k4/1P6/8/8/8/8/r7/2R5_w_-_-_0_1?color=white), specifically the one shown on the [Wikipedia page](https://en.wikipedia.org/wiki/Lucena_position). You could also add more FENs to include more analogous positions.
+
+![](examples/lucena.png)
 
 ## Data
 
