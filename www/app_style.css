@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400&family=Roboto:wght@100;300;400;500&display=swap');
+
+.container-fluid {
+	margin-top: 30px !important;
+}
+
+.white-pieces .control-label {
+	color: white;
+	font-family: JetBrains Mono;
+	text-shadow: 1px 1px 1px black, -1px -1px 1px black, 1px -1px 1px black, -1px 1px 1px black;
+	font-weight: bold;
+}
+
+.black-pieces .control-label {
+	font-family: JetBrains Mono;
+	color: #333;
+	font-weight: bold;
+	text-shadow: 1px 1px 1px #ccc, -1px -1px 1px #ccc, 1px -1px 1px #ccc, -1px 1px 1px #ccc;
+}
+
+#plot_subtitle {
+	font-family: JetBrains Mono;
+	font-style: normal;
+	font-weight: 100;
+	font-size: 1.0em;
+	line-height: 1.3em;
+	text-align: center;
+	letter-spacing: -0.035em;
+	text-transform: uppercase;
+	color: rgba(0, 0, 0, 0.6);
+}
+
+#plot_title {
+	font-family: JetBrains Mono;
+	font-style: normal;
+	font-weight: normal;
+	font-size: 1.6em;
+	line-height: 1.6em;
+	letter-spacing: -0.025em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+h3 {
+	font-family: JetBrains Mono;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 1.2em;
+	line-height: 1.3em;
+	text-align: center;
+	letter-spacing: -0.035em;
+	text-transform: uppercase;
+}
+
+h4 {
+	font-family: JetBrains Mono;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 1.0em;
+	line-height: 1.3em;
+	text-align: center;
+	letter-spacing: -0.035em;
+	text-transform: uppercase;
+}
+
+.card {
+	padding: 15px;
+	border:
+		1px solid #ddd;
+	border-radius: 5px;
+	background: white;
+	text-align: center;
+}
+
+.card h4 {
+	margin-top: 0;
+}
+
+#search_material,
+#search_position,
+#clearBtn,
+#white_to_move,
+.btn-group-toggle {
+	font-family: JetBrains Mono;
+	margin-top: 15px;
+	color: black;
+	border-color: black;
+}
+
+#white_to_play {
+    width: fit-content;
+    fill-color: blue;
+}
+
+.js-plotly-plot .annotation-text {
+  font-family: JetBrains Mono;
+}
+
+#panels {
+    text-align: center;
+}
