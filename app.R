@@ -6,7 +6,6 @@ library(shinyWidgets)
 library(stringr)
 library(bslib)
 library(shinyjs)
-
 library(shinyBS)
 
 dat <- open_dataset("data")

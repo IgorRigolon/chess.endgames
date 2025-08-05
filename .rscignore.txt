@@ -1,0 +1,12 @@
+/__pycache__/
+/data-raw/
+/examples/
+/scripts/
+/www/
+.gitattributes
+.gitignore
+.Rhistory
+LICENSE
+process_database.R
+README.md
+README.html
