@@ -10,7 +10,7 @@ library(bslib)
 library(shinyjs)
 library(shinyBS)
 
-dat <- open_dataset("data")
+dat <- open_dataset("gs://anonymous@chess_endgames")
 
 ui <- fluidPage(
     tags$head(
