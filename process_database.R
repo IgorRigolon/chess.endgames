@@ -16,9 +16,15 @@ chess.syzygy <- import("chess.syzygy")
 
 tablebase <- chess.syzygy$open_tablebase("D:/Tablebase")
 
+# month to analyze
+
+month <- "2025-06"
+
 # connecting to massive database
 
-con <- file("D:/lichess_db_standard_rated_2025-06.pgn", "r")
+file_path <- paste0("D:/lichess_db_standard_rated_", month, ".pgn")
+
+con <- file(file_path, "r")
 
 batch_size <- 1e6
 
@@ -28,7 +34,7 @@ past_endgames <- 0
 
 chunk <- 0
 
-skip_to_chunk <- 1382
+skip_to_chunk <- 0
 
 while (length(dat <- readLines(con, n = batch_size)) > 0) {
   chunk <- chunk + 1
@@ -146,7 +152,7 @@ while (length(dat <- readLines(con, n = batch_size)) > 0) {
 
   write_parquet(
     dat,
-    paste0("data-raw/", "batch_", chunk, ".parquet")
+    paste0("data-raw/", month, "/", "batch_", chunk, ".parquet")
   )
 
   message(paste0("Chunk ", chunk, ": ", past_rows, " games - ", past_endgames, " endgames "))
@@ -154,7 +160,7 @@ while (length(dat <- readLines(con, n = batch_size)) > 0) {
 
 # opening parquet chunks
 
-dat <- open_dataset("data-raw")
+dat <- open_dataset(file.path("data-raw", month))
 
 # counting material
 
@@ -179,6 +185,6 @@ dat <- dat %>%
 
 # splitting into parquet chunks
 
-dat %>%
-  group_by(time_control, white_material, black_material) %>%
-  arrow::write_dataset("data", max_rows_per_file = 3000000)
+save_path <- paste0("data/chess_endgames_", month, ".parquet")
+
+arrow::write_parquet(dat, save_path)
