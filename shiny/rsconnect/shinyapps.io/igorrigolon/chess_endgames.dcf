@@ -1,0 +1,12 @@
+name: chess_endgames
+title: chess_endgames
+username: igorrigolon
+account: igorrigolon
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15171273
+bundleId: 10737026
+url: https://igorrigolon.shinyapps.io/chess_endgames/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,5 +1,3 @@
-webr::install("arrow")
-
 library(arrow)
 library(dplyr)
 library(plotly)
