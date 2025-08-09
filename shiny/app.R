@@ -21,6 +21,7 @@ con <- dbConnect(
 dat <- tbl(con, "chess-endgames")
 
 ui <- fluidPage(
+    useShinyjs(),
     tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "app_style.css"),
         tags$script(src = "chess-editor.js"),
@@ -108,7 +109,12 @@ ui <- fluidPage(
             )
         )
     ),
-    uiOutput("plot")
+    textOutput("position_info"),
+    textOutput("game_info"),
+    div(
+        class = "plot-box",
+        uiOutput("plot")
+    )
 )
 
 server <- function(input, output, session) {
@@ -131,11 +137,19 @@ server <- function(input, output, session) {
 
   # making the buttons antagonistic
   
+  observeEvent(input$search_material, {
+      updateCollapse(session, "panels", close = "Filter games")
+      reset("search_position")
+  })
+  
+  observeEvent(input$search_position, {
+      updateCollapse(session, "panels", close = "Filter games")
+      reset("search_material")
+  })
+  
   counts <- reactiveValues()
 
   observeEvent(input$search_material, {
-      updateCollapse(session, "panels", close = "Filter games")
-    reset("search_position")
     
       counts$white_queen  <- str_count(input$current_fen, "Q")
       counts$black_queen  <- str_count(input$current_fen, "q")
@@ -152,14 +166,10 @@ server <- function(input, output, session) {
   position <- reactiveValues()
   
   observeEvent(input$search_position, {
-      updateCollapse(session, "panels", close = "Filter games")
-    reset("search_material")
     position$fen <- paste(input$current_fen, substr(move_state(), 1, 1))
     
     # if empty board
     position$empty <- input$current_fen == "8/8/8/8/8/8/8/8"
-    
-    print(input$current_fen)
     
     # detecting if kings are wrong
     position$invalid <- str_count(input$current_fen, "K") != 1 |
@@ -490,37 +500,40 @@ server <- function(input, output, session) {
 
     fig <- fig %>% layout(
       font = list(size = 16, family = "JetBrains Mono"),
-      margin = list(t = 60),
-      annotations = list(
-        list(
-          text = paste0(
-            format(num_position, big.mark = ","), " positions out of ",
-            format(total_positions, big.mark = ","),
-            " total endgame positions (",
-            round(100 * num_position / total_positions, 1), "%)"
-          ),
-          x = 0.5, y = 1.05,
-          xref = "paper", yref = "paper",
-          xanchor = "center", yanchor = "bottom",
-          showarrow = FALSE,
-          font = list(size = 14, color = "black")
-        ),
-        list(
-          text = paste0(
-            format(num_game, big.mark = ","), " unique games ",
-            "out of ", format(total_games, big.mark = ","),
-            " (", round(100 * num_game / total_games, 1), "%)"
-          ),
-          x = 0.5, y = 1.02,
-          xref = "paper", yref = "paper",
-          xanchor = "center", yanchor = "bottom",
-          showarrow = FALSE,
-          font = list(size = 14, color = "black")
-        )
-      )
+      margin = list(t = 60)
     )
 
     fig
+  })
+  
+  output$position_info <- renderText({
+      text <- ""
+      
+      if (input$search_position > 0 || input$search_material > 0) {
+          text <- paste0(
+              format(num_position, big.mark = ","), " positions out of ",
+              format(total_positions, big.mark = ","),
+              " total endgame positions (",
+              round(100 * num_position / total_positions, 1), "%)"
+          )
+      }
+      
+      text
+  })
+  
+  
+  output$game_info <- renderText({
+      text <- ""
+      
+      if (input$search_position > 0 || input$search_material > 0) {
+          text <- paste0(
+              format(num_game, big.mark = ","), " unique games ",
+              "out of ", format(total_games, big.mark = ","),
+              " (", round(100 * num_game / total_games, 1), "%)"
+          )
+      }
+      
+      text
   })
   
   # Track move state

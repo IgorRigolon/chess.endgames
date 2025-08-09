@@ -17,6 +17,14 @@
     user-select: none;
 }
 
+.plot-box {
+    touch-action: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .white-pieces .control-label {
 	color: white;
 	font-family: JetBrains Mono;
@@ -41,6 +49,16 @@
 	letter-spacing: -0.035em;
 	text-transform: uppercase;
 	color: rgba(0, 0, 0, 0.6);
+}
+
+#position_info, #game_info {
+	font-family: JetBrains Mono;
+	font-style: normal;
+	font-weight: 100;
+	font-size: 1.0em;
+	line-height: 1.3em;
+	text-align: center;
+	letter-spacing: -0.035em;
 }
 
 #plot_title {
