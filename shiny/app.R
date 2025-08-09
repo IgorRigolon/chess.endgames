@@ -1,4 +1,3 @@
-library(arrow)
 library(dplyr)
 library(plotly)
 library(shinycssloaders)
@@ -7,8 +6,19 @@ library(stringr)
 library(bslib)
 library(shinyjs)
 library(shinyBS)
+library(bigrquery)
+library(dbplyr)
 
-dat <- open_dataset("gs://anonymous@chess_endgames")
+bq_auth(path = "absolute-text-417919-b869e01f2c6d.json")
+
+con <- dbConnect(
+    bigrquery::bigquery(),
+    project = "absolute-text-417919",
+    dataset = "chess_endgames",
+    billing = "absolute-text-417919"
+)
+
+dat <- tbl(con, "chess-endgames")
 
 ui <- fluidPage(
     tags$head(
@@ -56,9 +66,9 @@ ui <- fluidPage(
                 )
             ),
             # Chess board and buttons
-            h4("Set up a position and search for games with the same material imbalance (Kings ignored) or the same exact position"),
+            h4("Set up a position and search for games with the same material imbalance (Kings ignored) or the same exact position. Leave empty to see all games."),
             div(
-                style = "display: flex; justify-content: center; align-items: center; width: 100%; padding: 20px;",
+                class = "chessboard-container",
                 tags$div(id = "myBoard", style = "width: 400px;")
             ),
             div(
@@ -145,38 +155,58 @@ server <- function(input, output, session) {
       updateCollapse(session, "panels", close = "Filter games")
     reset("search_material")
     position$fen <- paste(input$current_fen, substr(move_state(), 1, 1))
+    
+    # if empty board
+    position$empty <- input$current_fen == "8/8/8/8/8/8/8/8"
+    
+    print(input$current_fen)
+    
+    # detecting if kings are wrong
+    position$invalid <- str_count(input$current_fen, "K") != 1 |
+        str_count(input$current_fen, "k") != 1
+    
+    position$invalid <- position$invalid & !position$empty
   })
 
   # keep only the time control and rating ranges chosen
 
   filtered_dat <- reactive({
     dat <- dat %>%
-      filter(time_control %in% input$time_control)
+      filter(time_control %in% !!input$time_control)
 
     if (input$rating[1] > 400) {
       dat <- dat %>%
-        filter(avg_elo >= input$rating[1])
+        filter(avg_elo >= !!input$rating[1])
     }
 
     if (input$rating[2] < 3400) {
       dat <- dat %>%
-        filter(avg_elo <= input$rating[2])
+        filter(avg_elo <= !!input$rating[2])
     }
 
     # store total games and observations
-
-    total_positions <<- nrow(dat)
+    
+    total_positions <<- dat %>%
+        summarise(total_games = n()) %>%
+        collect() %>%
+        pull(total_games)
 
     total_games <<- dat %>%
       summarise(total_games = n_distinct(id)) %>%
       collect() %>%
       pull(total_games)
-
+    
     # filter specific fen
-    if (input$search_position && position$fen != "") {
+    if (input$search_position && !position$empty) {
+        
+        # Validate FEN
+        shiny::validate(
+            need(!position$invalid, "Invalid position.")
+        )    
+        
       dat <- dat %>%
         filter(
-          stringr::str_detect(fens, position$fen)
+          stringr::str_detect(fens, !!position$fen)
         )
     }
 
@@ -201,21 +231,24 @@ server <- function(input, output, session) {
               black_material == black_total
         ) %>%
             filter(
-                white_queen  == counts$white_queen,
-                black_queen  == counts$black_queen,
-                white_rook   == counts$white_rook,
-                black_rook   == counts$black_rook,
-                white_knight == counts$white_knight,
-                black_knight == counts$black_knight,
-                white_bishop == counts$white_bishop,
-                black_bishop == counts$black_bishop,
-                white_pawn   == counts$white_pawn,
-                black_pawn   == counts$black_pawn
+                white_queen  == !!counts$white_queen,
+                black_queen  == !!counts$black_queen,
+                white_rook   == !!counts$white_rook,
+                black_rook   == !!counts$black_rook,
+                white_knight == !!counts$white_knight,
+                black_knight == !!counts$black_knight,
+                white_bishop == !!counts$white_bishop,
+                black_bishop == !!counts$black_bishop,
+                white_pawn   == !!counts$white_pawn,
+                black_pawn   == !!counts$black_pawn
             )
       }
     }
 
-    num_position <<- nrow(dat)
+    num_position <<- dat %>%
+        summarise(total_games = n()) %>%
+        collect() %>%
+        pull(total_games)
 
     num_game <<- dat %>%
       summarise(total_games = n_distinct(id)) %>%
@@ -308,6 +341,7 @@ server <- function(input, output, session) {
   })
 
   output$actual_plot <- renderPlotly({
+      
     df_p <- filtered_dat()
 
     all_nodes <- union(unique(df_p$source), unique(df_p$target))
