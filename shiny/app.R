@@ -97,14 +97,32 @@ ui <- fluidPage(
                     label = "Search material",
                     icon = icon("play"),
                     style = "bordered",
-                    color = "primary"
+                    color = "primary",
+                    onclick = "
+    (function(){
+      var openPanel = document.querySelector('#panels .panel-collapse.in');
+      if (openPanel) {
+        var headerLink = document.querySelector('a[href=\"#' + openPanel.id + '\"]');
+        if (headerLink) headerLink.click();
+      }
+    })();
+  "
                 ),
                 actionBttn(
                     inputId = "search_position",
                     label = "Search position",
                     icon = icon("play"),
                     style = "bordered",
-                    color = "primary"
+                    color = "primary",
+                    onclick = "
+    (function(){
+      var openPanel = document.querySelector('#panels .panel-collapse.in');
+      if (openPanel) {
+        var headerLink = document.querySelector('a[href=\"#' + openPanel.id + '\"]');
+        if (headerLink) headerLink.click();
+      }
+    })();
+  "
                 )
             )
         )
@@ -138,14 +156,14 @@ server <- function(input, output, session) {
   # making the buttons antagonistic
   
   observeEvent(input$search_material, {
-      updateCollapse(session, "panels", close = "Filter games")
+      #updateCollapse(session, "panels", close = "Filter games")
       reset("search_position")
-  })
+  }, priority = 1000)
   
   observeEvent(input$search_position, {
-      updateCollapse(session, "panels", close = "Filter games")
+      #updateCollapse(session, "panels", close = "Filter games")
       reset("search_material")
-  })
+  }, priority = 1000)
   
   counts <- reactiveValues()
 
@@ -177,10 +195,14 @@ server <- function(input, output, session) {
     
     position$invalid <- position$invalid & !position$empty
   })
-
+  
+  # store number of games and positions
+  values <- reactiveValues()
+  
   # keep only the time control and rating ranges chosen
 
   filtered_dat <- reactive({
+      
     dat <- dat %>%
       filter(time_control %in% !!input$time_control)
 
@@ -255,12 +277,12 @@ server <- function(input, output, session) {
       }
     }
 
-    num_position <<- dat %>%
+    values$num_positions <<- dat %>%
         summarise(total_games = n()) %>%
         collect() %>%
         pull(total_games)
 
-    num_game <<- dat %>%
+    values$num_games <<- dat %>%
       summarise(total_games = n_distinct(id)) %>%
       collect() %>%
       pull(total_games)
@@ -349,7 +371,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   output$actual_plot <- renderPlotly({
       
     df_p <- filtered_dat()
@@ -487,8 +509,8 @@ server <- function(input, output, session) {
         label = paste0(df_p$num_games),
         customdata = cbind(source_types, source_labels,
                            target_types, target_labels,
-                           round(100*df_p$num_positions/num_position, 1),
-                           round(100*df_p$num_games/num_game, 1)),
+                           round(100*df_p$num_positions/values$num_positions, 1),
+                           round(100*df_p$num_games/values$num_games, 1)),
         hovertemplate = HTML(
             " <b>%{customdata[0]}:</b> %{customdata[1]}<br>",
             "<b>%{customdata[2]}:</b> %{customdata[3]}<br>",
@@ -510,11 +532,12 @@ server <- function(input, output, session) {
       text <- ""
       
       if (input$search_position > 0 || input$search_material > 0) {
+          req(values$num_positions)
           text <- paste0(
-              format(num_position, big.mark = ","), " positions out of ",
+              format(values$num_positions, big.mark = ","), " positions out of ",
               format(total_positions, big.mark = ","),
               " total endgame positions (",
-              round(100 * num_position / total_positions, 1), "%)"
+              round(100 * values$num_positions / total_positions, 1), "%)"
           )
       }
       
@@ -526,10 +549,11 @@ server <- function(input, output, session) {
       text <- ""
       
       if (input$search_position > 0 || input$search_material > 0) {
+          req(values$num_games)
           text <- paste0(
-              format(num_game, big.mark = ","), " unique games ",
+              format(values$num_games, big.mark = ","), " unique games ",
               "out of ", format(total_games, big.mark = ","),
-              " (", round(100 * num_game / total_games, 1), "%)"
+              " (", round(100 * values$num_games / total_games, 1), "%)"
           )
       }
       
