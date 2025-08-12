@@ -51,16 +51,6 @@
 	color: rgba(0, 0, 0, 0.6);
 }
 
-.message-box * {
- 	font-family: JetBrains Mono;
-	font-style: normal;
-	font-weight: normal;
-	font-size: 1.0em;
-	line-height: 1.3em;
-	text-align: center;
-	letter-spacing: -0.035em;   
-}
-
 #custom_message {
 	font-family: JetBrains Mono;
 	font-style: normal;
