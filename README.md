@@ -1,9 +1,13 @@
 # chess.endgames
 An interactive data visualization to see how tablebase positions play out in practice
 
-Click on the image below to open the data visualization. You can filter games by time control, rating range, and by either material count or a specific FEN. Tablebase evaluations and results are always shown from white's perspective. _Note: It runs locally on your browser, so it may slow down your computer._
+Click on the image below to open the data visualization. You can filter games by time control, rating range, and by either material count or a specific FEN. Tablebase evaluations and results are always shown from white's perspective.
 
-![Click here to see](examples/main.png)
+<div align="center">
+  <a href="https://igorrigolon.shinyapps.io/chess_endgames/" target="_blank">
+    <img src="examples/main.png" alt="Click here to open" width="50%">
+  </a>
+</div>
 
 ## Introduction
 
@@ -11,23 +15,11 @@ Even though chess positions with 7 pieces or fewer are solved by computers, they
 
 > How often do players mess up objectively winning or drawn endgames?
 
-Out of over 91 million games analyzed, 4.76 million of them reached a tablebase position (3-4-5 piece tablebase). That amounts to 76.2 million tablebase FENs.
-
-## Filtering by material
-
-You can select any material imbalance where there are fewer than 5 pieces on the board (kings included). For example, you can search for positions where white has a Bishop + Knight and black only has a King.
-
-![](examples/bishop_knight.png)
-
-## Filtering by position
-
-To search a specific position, you can set it up on the [Lichess board editor](https://lichess.org/editor/) and paste its FEN. Below I've searched for a [Lucena position](https://lichess.org/editor/1K1k4/1P6/8/8/8/8/r7/2R5_w_-_-_0_1?color=white), specifically the one shown on the [Wikipedia page](https://en.wikipedia.org/wiki/Lucena_position). You could also add more FENs to include more analogous positions.
-
-![](examples/lucena.png)
+Out of over 91 million games analyzed, 4.76 million of them reached a tablebase position (3-4-5 piece tablebase). That amounts to 76.2 million tablebase FENs, out of which 66.7 million are unique.
 
 ## Data
 
-The data I used comes from the [lichess database](https://database.lichess.org/) and from [Syzygy tablebases](https://syzygy-tables.info/#download). If you just want to look at the processed data, it's all in the `/data/` folder. If you clone the repository, you can open it in R with
+The data I used comes from the [lichess database](https://database.lichess.org/) and from [Syzygy tablebases](https://syzygy-tables.info/#download). If you just want to look at the processed data, it's all in a [GitHub release](https://github.com/IgorRigolon/chess.endgames/releases/tag/data), and in a [Google Cloud Storage bucket](https://storage.googleapis.com/chess_endgames/chess_endgames_2025-06.parquet), both stored in `.parquet`.
 
 ```
 library(arrow)
@@ -36,6 +28,8 @@ dat <- open_dataset(".../chess.endgames/data/")
 ```
 
 or with analogous code on Python or other languages. Just beware that the data is probably too big to load into memory all at once, which is why [Arrow](https://arrow.apache.org/) comes in handy. You'll probably want to query a subset of the data or summary statistics before running `collect()` on it to actually open it.
+
+The data is also available in a [Google BigQuery Table](https://console.cloud.google.com/bigquery?hl=en&inv=1&invt=Ab5SZQ&project=absolute-text-417919&ws=!1m5!1m4!4m3!1sabsolute-text-417919!2schess_endgames!3schess-endgames), which I use to fuel the data visualization.
 
 ## Workflow
 
@@ -47,8 +41,10 @@ For the auxiliary scripts: `read_pgn.R` parses big chunks of PGNs into data fram
 
 I discarded games with a rating disparity between the players greater than 200 points, and only stored the average rating of the players. I then collapsed the ratings into bins of 100 points.
 
+Finally, I copied the data to a Google BigQuery table so that all data processing in the Shiny App (filtering and counting positions/games) is run on the cloud. I tried other alternatives (local hosting, Google Cloud Run) and they made the graph too slow to load.
+
 ## Limitations
 
-- Only used the games played in June 2025;
+- Only used the games played in June 2025. Could include other and eventually all games ever, but BigQuery costs would scale proportionately;
 - Did not use 6 or 7-piece tablebases;
 - Data and graph are not colorblind: symmetric positions for black/white are not considered the same, and results are shown with respect to white.
