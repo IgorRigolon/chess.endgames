@@ -3,11 +3,15 @@ An interactive data visualization to see how tablebase positions play out in pra
 
 Click on the image below to open the data visualization. You can filter games by time control, rating range, and by either material count or a specific FEN. Tablebase evaluations and results are always shown from white's perspective.
 
+---
+
 <div align="center">
   <a href="https://igorrigolon.shinyapps.io/chess_endgames/" target="_blank">
-    <img src="examples/main.png" alt="Click here to open" width="50%">
+    <img src="examples/main.png" alt="Click here to open">
   </a>
 </div>
+
+---
 
 ## Introduction
 
