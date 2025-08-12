@@ -29,18 +29,3 @@ function sendFenToShiny() {
     Shiny.setInputValue('current_fen', fen, {priority: "event"});
   }
 }
-
-$(document).on('click', '#search_material', function() {
-  Shiny.sendCustomMessage('collapse', {
-    id: 'panels',
-    close: 'Filter games'
-  });
-});
-
-$(document).on('click', '#search_position', function() {
-  Shiny.sendCustomMessage('collapse', {
-    id: 'panels',
-    close: 'Filter games'
-  });
-});
-

@@ -127,6 +127,7 @@ ui <- fluidPage(
             )
         )
     ),
+    textOutput("custom_message"),
     textOutput("position_info"),
     textOutput("game_info"),
     div(
@@ -158,12 +159,12 @@ server <- function(input, output, session) {
   observeEvent(input$search_material, {
       #updateCollapse(session, "panels", close = "Filter games")
       reset("search_position")
-  }, priority = 1000)
+  })
   
   observeEvent(input$search_position, {
       #updateCollapse(session, "panels", close = "Filter games")
       reset("search_material")
-  }, priority = 1000)
+  })
   
   counts <- reactiveValues()
 
@@ -554,6 +555,55 @@ server <- function(input, output, session) {
               format(values$num_games, big.mark = ","), " unique games ",
               "out of ", format(total_games, big.mark = ","),
               " (", round(100 * values$num_games / total_games, 1), "%)"
+          )
+      }
+      
+      text
+  })
+  
+  # message telling the user what's being shown
+  output$custom_message <- renderText({
+      input$current_fen
+      input$search_position  
+      input$search_material
+      
+      text <- ""
+      
+      req(input$current_fen)
+      
+      if (input$current_fen == "8/8/8/8/8/8/8/8") {
+          text <- "All positions with 5 pieces or fewer"
+      }
+      
+      else if (input$search_position) {
+          text <- paste(
+              "Position with FEN", position$fen
+          )
+      }
+      
+      else if (input$search_material) {
+          white_pieces <- stringr::str_extract_all(
+              input$current_fen, "R|N|B|Q|P",
+              simplify = TRUE
+          ) %>%
+              stringr::str_split("", simplify = TRUE) %>%
+              stringr::str_sort() %>%
+              paste0(collapse = "")
+          
+          black_pieces <- stringr::str_extract_all(
+              input$current_fen, "r|n|b|q|p",
+              simplify = TRUE
+          ) %>%
+              toupper() %>%
+              stringr::str_split("", simplify = TRUE) %>%
+              stringr::str_sort() %>%
+              paste0(collapse = "")
+          
+          
+          text <- paste0(
+              "Positions where White has ",
+              "K", white_pieces, " vs. ",
+              "K", black_pieces
           )
       }
       
